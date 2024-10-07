@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
-
+import type { RateLimitBinding } from "@elithrar/workers-hono-rate-limit";
 import { config } from "./lib/config";
 import { camelCaseMiddleware, rateLimitMiddleware } from "./lib/middleware";
 import {
@@ -19,8 +19,10 @@ import {
   song,
 } from "./routes";
 import { CustomResponse } from "./types/response";
-
-const app = new Hono({ strict: false }); // match routes w/ or w/o trailing slash
+type Bindings = {
+  RATE_LIMITER: RateLimitBinding;
+};
+const app = new Hono<{ Bindings: Bindings }>({ strict: false }); // match routes w/ or w/o trailing slash
 
 /* -----------------------------------------------------------------------------------------------
  * middlewares
@@ -88,7 +90,7 @@ app.onError((err, c) => {
 });
 
 const server = {
-  port: +(process.env.PORT ?? 3000),
+  port: 3000,
   fetch: app.fetch,
 };
 

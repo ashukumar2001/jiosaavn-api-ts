@@ -1,48 +1,71 @@
-import { MiddlewareHandler } from "hono";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+import { Context, MiddlewareHandler } from "hono";
+// import { Ratelimit } from "@upstash/ratelimit";
+// import { Redis } from "@upstash/redis";
 
 import { config } from "./config";
 import { toCamelCase } from "./utils";
+import { rateLimit } from "@elithrar/workers-hono-rate-limit";
 
 /* -----------------------------------------------------------------------------------------------
  * Rate Limit Middleware using Upstash Redis Ratelimit
  * -----------------------------------------------------------------------------------------------*/
-
+// const getKey: RateLimitKeyFunc = (c: Context): string => {
+//   console.log(c.req.header("x-forwarded-for"));
+//   return c.req.header("x-forwarded-for") ?? "anonymous";
+// };
+function getKey(c: Context) {
+  return c.req.header("x-forwarded-for") ?? "anonymous";
+}
+/* -----------------------------------------------------------------------------------------------
+ * Rate Limit Middleware using Cloudflare Workers
+ * -----------------------------------------------------------------------------------------------*/
 export function rateLimitMiddleware(): MiddlewareHandler {
   return async (c, next) => {
     // skip middleware if rate limit is disabled
     if (!config.rateLimit.enable || c.req.path === "/") {
       return await next();
     }
-
-    const ratelimit = new Ratelimit({
-      redis: Redis.fromEnv(),
-      limiter: Ratelimit.slidingWindow(config.rateLimit.limitedReqCount, "1s"),
-    });
-
-    const ip = c.req.header("x-forwarded-for") ?? "anonymous";
-
-    const { limit, remaining, reset, success } = await ratelimit.limit(ip);
-
-    if (!success) {
-      c.status(429);
-
-      return c.json({
-        status: "Failed",
-        message: "You have exceeded the rate limit. Please try again later.",
-        limit,
-        remaining,
-        reset: `${reset - Date.now()}ms`,
-      });
-    }
-
-    c.res.headers.set("x-ratelimit-limit", limit.toString());
-    c.res.headers.set("x-ratelimit-remaining", remaining.toString());
-
-    await next();
+    await rateLimit(c.env.RATE_LIMITER, getKey)(c, next);
   };
 }
+
+// export function rateLimitMiddleware(): MiddlewareHandler {
+// return async (c, next) => {
+//   // skip middleware if rate limit is disabled
+//   if (!config.rateLimit.enable || c.req.path === "/") {
+//     return await next();
+//   }
+
+//   const ratelimit = new Ratelimit({
+//     redis: Redis.fromEnv(),
+//     limiter: Ratelimit.slidingWindow(config.rateLimit.limitedReqCount, "1s"),
+//   });
+
+//   const ip = c.req.header("x-forwarded-for") ?? "anonymous";
+
+//   const { limit, remaining, reset, success } = await ratelimit.limit(ip);
+
+//   if (!success) {
+//     c.status(429);
+
+//     return c.json({
+//       status: "Failed",
+//       message: "You have exceeded the rate limit. Please try again later.",
+//       limit,
+//       remaining,
+//       reset: `${reset - Date.now()}ms`,
+//     });
+//   }
+
+//   c.res.headers.set("x-ratelimit-limit", limit.toString());
+//   c.res.headers.set("x-ratelimit-remaining", remaining.toString());
+
+//   await next();
+// };
+
+// rate limiting with cloudflare workers
+
+// }
 
 /* -----------------------------------------------------------------------------------------------
  * Rate Limit Middleware using LRUCache

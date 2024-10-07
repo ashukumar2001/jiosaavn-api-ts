@@ -1,2 +1,10 @@
 name = "api"
 compatibility_date = "2023-01-01"
+
+
+[[unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+# 20 requests per 10 seconds
+simple = { limit = 120, period = 10 }
