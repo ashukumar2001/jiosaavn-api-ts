@@ -6,7 +6,7 @@ export const config = {
   },
 
   rateLimit: {
-    enable: true,
+    enable: false,
     limitedReqCount: 120,
   },
 
