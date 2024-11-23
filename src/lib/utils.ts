@@ -181,7 +181,7 @@ type Artist = (ArtistMiniRequest | ArtistMiniResponse)[];
 export function dedupArtists(artists: Artist) {
   const uniqueArtists: { [id: string]: ArtistMiniResponse } = {};
 
-  artists.forEach((artist) => {
+  artists?.forEach((artist) => {
     if (uniqueArtists[artist.id]) {
       uniqueArtists[artist.id].role += `, ${capitalize(artist.role)}`;
     } else {
