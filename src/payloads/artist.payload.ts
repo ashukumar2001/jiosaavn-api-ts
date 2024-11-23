@@ -282,7 +282,7 @@ export function artistMapPayload(
         primary_artists: [],
       }
     : {
-        artists: dedupArtists(a.artists.map(artistMiniPayload)),
+        artists: dedupArtists(a?.artists?.map(artistMiniPayload) || []),
         featured_artists: dedupArtists(
           a.featured_artists.map(artistMiniPayload)
         ),
