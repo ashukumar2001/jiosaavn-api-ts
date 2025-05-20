@@ -29,7 +29,7 @@ const app = new Hono<{ Bindings: Bindings }>({ strict: false }); // match routes
  * -----------------------------------------------------------------------------------------------*/
 app.use(
   "*",
-  cors(),
+  cors({ origin: "*" }),
   prettyJSON(),
   logger(),
   rateLimitMiddleware(),

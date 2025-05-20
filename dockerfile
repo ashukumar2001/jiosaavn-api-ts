@@ -2,7 +2,7 @@ FROM oven/bun
 
 WORKDIR /app
 
-ENV ENABLE_RATE_LIMIT=true
+ENV ENABLE_RATE_LIMIT=false
 
 # disable husky git hooks installation 
 ARG HUSKY=0 
@@ -16,4 +16,5 @@ EXPOSE 80:3000
 
 COPY . .
 
-CMD ["bun", "run", "src/index.ts"]
+ENTRYPOINT ["bun"]
+CMD ["run", "src/index.ts"]
